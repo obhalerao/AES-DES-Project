@@ -96,6 +96,22 @@ mults = [[['00','02','04','06','08','0a','0c','0e','10','12','14','16','18','1a'
           ['67','6a','7d','70','53','5e','49','44','0f','02','15','18','3b','36','21','2c'],
           ['0c','01','16','1b','38','35','22','2f','64','69','7e','73','50','5d','4a','47'],
           ['dc','d1','c6','cb','e8','e5','f2','ff','b4','b9','ae','a3','80','8d','9a','97']],
+         [['00','0e','1c','12','38','36','24','2a','70','7e','6c','62','48','46','54','5a'],
+          ['e0','ee','fc','f2','d8','d6','c4','ca','90','9e','8c','82','a8','a6','b4','ba'],
+          ['db','d5','c7','c9','e3','ed','ff','f1','ab','a5','b7','b9','93','9d','8f','81'],
+          ['3b','35','27','29','03','0d','1f','11','4b','45','57','59','73','7d','6f','61'],
+          ['ad','a3','b1','bf','95','9b','89','87','dd','d3','c1','cf','e5','eb','f9','f7'],
+          ['4d','43','51','5f','75','7b','69','67','3d','33','21','2f','05','0b','19','17'],
+          ['76','78','6a','64','4e','40','52','5c','06','08','1a','14','3e','30','22','2c'],
+          ['96','98','8a','84','ae','a0','b2','bc','e6','e8','fa','f4','de','d0','c2','cc'],
+          ['41','4f','5d','53','79','77','65','6b','31','3f','2d','23','09','07','15','1b'],
+          ['a1','af','bd','b3','99','97','85','8b','d1','df','cd','c3','e9','e7','f5','fb'],
+          ['9a','94','86','88','a2','ac','be','b0','ea','e4','f6','f8','d2','dc','ce','c0'],
+          ['7a','74','66','68','42','4c','5e','50','0a','04','16','18','32','3c','2e','20'],
+          ['ec','e2','f0','fe','d4','da','c8','c6','9c','92','80','8e','a4','aa','b8','b6'],
+          ['0c','02','10','1e','34','3a','28','26','7c','72','60','6e','44','4a','58','56'],
+          ['37','39','2b','25','0f','01','13','1d','47','49','5b','55','7f','71','63','6d'],
+          ['d7','d9','cb','c5','ef','e1','f3','fd','a7','a9','bb','b5','9f','91','83','8d']]]
 
 def char2hex(c):
     return hex(ord(c))[2:]
@@ -104,7 +120,10 @@ def hex2char(x):
     return chr(int(x, 16))
 
 def xor(s1, s2):
-    return hex(int(s1, 16) ^ int(s2, 16))[2:]
+    k =  hex(int(s1, 16) ^ int(s2, 16))[2:]
+    if(len(k) == 1):
+        k = "0" + k
+    return k
            
 def hashcode(c):
     if(c.isdigit()):
@@ -135,18 +154,33 @@ def mult_hash(x):
     if(x == 14):
         return 5
 
+def mult(a, b):
+    return mults[mult_hash(a)][hashcode(b[0])][hashcode(b[1])]
+    
 def matrix_mult(m1, m2):
     m_new = []
-    for row in range(len(m1)):
+    for row in range(4):
         m_new.append([])
-        for col in range(len(m2[0])):
-            m_new[row].append((m1[row][0]*m2[0][col] + m1[row][1]*m2[1][col]))
+        for col in range(4):
+            curr_sum = "00"
+            for k in range(4):
+                if(m1[row][k] == 1):
+                    curr_sum = xor(curr_sum, m2[k][col])
+                else:
+                    curr_sum = xor(curr_sum, mult(m1[row][k], m2[k][col]))
+            m_new[row].append(curr_sum)
     return m_new
 
 def bs(m):
     for i in range(len(m)):
         for j in range(len(m[i])):
             m[i][j] = s(m[i][j])
+    return m
+
+def inv_bs(m):
+    for i in range(len(m)):
+        for j in range(len(m[i])):
+            m[i][j] = inv_s(m[i][j])
     return m
 
 def sr(m):
@@ -158,12 +192,27 @@ def sr(m):
         new_m.append(temp)
     return new_m
 
+def inv_sr(m):
+    new_m = []
+    for i in range(4):
+        temp = []
+        for j in range(4):
+            temp.append(m[i][(j-i)%4])
+        new_m.append(temp)
+    return new_m
+
 def mc(m):
     left_m = [[2, 3, 1, 1],[1, 2, 3, 1],[1, 1, 2, 3],[3, 1, 1, 2]]
-    
+    return matrix_mult(left_m, m)
+
+def inv_mc(m):
+    left_m = [[14,11,13,9],[9,14,11,13],[13,9,14,11],[11,13,9,14]]
+    return matrix_mult(left_m, m)
+
 def ark(matrix, key):
     for x in range(4):
         for y in range(4):
             matrix[x][y] = xor(matrix[x][y], key[x][y])
     return matrix
         
+print(inv_mc(mc([['fe','76','c5','b1'],['cb','f0','c5','7d'],['52','52','a2','38'],['63','2b','af','20']])))
