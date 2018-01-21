@@ -214,5 +214,41 @@ def ark(matrix, key):
         for y in range(4):
             matrix[x][y] = xor(matrix[x][y], key[x][y])
     return matrix
+
+def T(key, j):
+    table = {4 : 0b00000001, 8 : 0b00000010, 12 : 0b00000100, 16 : 0b00001000, 20 : 0b00010000, 24 : 0b00100000, 28 : 0b01000000, 32 : 0b10000000, 36 :  0b00011011, 40 : 0b00110110}
+    out = []
+    for i in range(4):
+        out.append(key[i][j-1])
+    if j in table.keys():#% 4 == len(key):
+        out.append(out[0])
+        out = out[1:]
+        print(len(out))
+        for i in range(4):
+            out[i] = s(out[i])
+        print(out[0])
+        out[0] = hex(int(out[0], 16) ^ int(table[j]))[2:]
+    return out
+        
+def expandKeySchedule(key):
+    for j in range(4, 44):
+        t = T(key, j)
+        print(str(j) + " and " + str(t))
+        for i in range(4):
+            key[i].append(xor(key[i][j-4], t[i]))#hex(int(key[i][j-3], 16) ^ int(t[i], 16) )[2:])
+
+def keyToMatrix(string):
+    k = [['', '', '', ''],
+         ['', '', '', ''],
+         ['', '', '', ''],
+         ['', '', '', '']]
+    
+    string = string + 'ZZZZZZZZZZZZZZZZ'
+    i = 0
+    for x in range(4):
+        for y in range(4):
+            k[y][x] = "ff"#char2hex(string[i])
+            i += 1
+    return k
         
 print(inv_mc(mc([['fe','76','c5','b1'],['cb','f0','c5','7d'],['52','52','a2','38'],['63','2b','af','20']])))
