@@ -51,19 +51,19 @@ mults = [[['00','02','04','06','08','0a','0c','0e','10','12','14','16','18','1a'
          [['00','09','12','1b','24','2d','36','3f','48','41','5a','53','6c','65','7e','77'],
           ['90','99','82','8b','b4','bd','a6','af','d8','d1','ca','c3','fc','f5','ee','e7'],
           ['3b','32','29','20','1f','16','0d','04','73','7a','61','68','57','5e','45','4c'],
-          ['ab','a2','b9','b0','8f','86','9d','94','e3','ea','f1','f8','c7','c3','d5','dc'],
+          ['ab','a2','b9','b0','8f','86','9d','94','e3','ea','f1','f8','c7','ce','d5','dc'],
           ['76','7f','64','6d','52','5b','40','49','3e','37','2c','25','1a','13','08','01'],
           ['e6','ef','f4','fd','c2','cb','d0','d9','ae','a7','bc','b5','8a','83','98','91'],
           ['4d','44','5f','56','69','60','7b','72','05','0c','17','1e','21','28','33','3a'],
           ['dd','d4','cf','c6','f9','f0','eb','e2','95','9c','87','8e','b1','b8','a3','aa'],
           ['ec','e5','fe','f7','c8','c1','da','d3','a4','ad','b6','bf','80','89','92','9b'],
           ['7c','75','6e','67','58','51','4a','43','34','3d','26','2f','10','19','02','0b'],
-          ['d7','d3','c5','cc','f3','fa','e1,''e8','9f','96','8d','84','bb','b2','a9','a0'],
+          ['d7','de','c5','cc','f3','fa','e1','e8','9f','96','8d','84','bb','b2','a9','a0'],
           ['47','4e','55','5c','63','6a','71','78','0f','06','1d','14','2b','22','39','30'],
-          ['9a','93','88','81','b3','b7','ac','a5','d2','db','c0','c9','f6','dd','e4','ed'],
+          ['9a','93','88','81','be','b7','ac','a5','d2','db','c0','c9','f6','ff','e4','ed'],
           ['0a','03','18','11','2e','27','3c','35','42','4b','50','59','66','6f','74','7d'],
           ['a1','a8','b3','ba','85','8c','97','9e','e9','e0','fb','f2','cd','c4','df','d6'],
-          ['31','38','23','2a','15','1c','07','03','79','70','6b','62','5d','54','4f','46']],
+          ['31','38','23','2a','15','1c','07','0e','79','70','6b','62','5d','54','4f','46']],
          [['00','0b','16','1d','2c','27','3a','31','58','53','4e','45','74','7f','62','69'],
           ['b0','bb','a6','ad','9c','97','8a','81','e8','e3','fe','f5','c4','cf','d2','d9'],
           ['7b','70','6d','66','57','5c','41','4a','23','28','35','3e','0f','04','19','12'],
@@ -90,7 +90,7 @@ mults = [[['00','02','04','06','08','0a','0c','0e','10','12','14','16','18','1a'
           ['06','0b','1c','11','32','3f','28','25','6e','63','74','79','5a','57','40','4d'],
           ['da','d7','c0','cd','ee','e3','f4','f9','b2','bf','a8','a5','86','8b','9c','91'],
           ['0a','07','10','1d','3e','33','24','29','62','6f','78','75','56','5b','4c','41'],
-          ['61','6c','7b','76,''55','58','4f','42','09','04','13','1e','3d','30','27','2a'],
+          ['61','6c','7b','76','55','58','4f','42','09','04','13','1e','3d','30','27','2a'],
           ['b1','bc','ab','a6','85','88','9f','92','d9','d4','c3','ce','ed','e0','f7','fa'],
           ['b7','ba','ad','a0','83','8e','99','94','df','d2','c5','c8','eb','e6','f1','fc'],
           ['67','6a','7d','70','53','5e','49','44','0f','02','15','18','3b','36','21','2c'],
@@ -223,20 +223,21 @@ def T(key, j):
     if j in table.keys():#% 4 == len(key):
         out.append(out[0])
         out = out[1:]
-        print(len(out))
         for i in range(4):
             out[i] = s(out[i])
-        print(out[0])
         out[0] = hex(int(out[0], 16) ^ int(table[j]))[2:]
     return out
         
 def expandKeySchedule(key):
     for j in range(4, 44):
         t = T(key, j)
-        print(str(j) + " and " + str(t))
         for i in range(4):
-            key[i].append(xor(key[i][j-4], t[i]))#hex(int(key[i][j-3], 16) ^ int(t[i], 16) )[2:])
+            key[i].append(xor(key[i][j-4], t[i]))
 
+def getCurrKey(k, r):
+    r = 4*r
+    return [k[0][r:r+4],k[1][r:r+4],k[2][r:r+4],k[3][r:r+4]]
+    
 def keyToMatrix(string):
     k = [['', '', '', ''],
          ['', '', '', ''],
@@ -247,8 +248,71 @@ def keyToMatrix(string):
     i = 0
     for x in range(4):
         for y in range(4):
-            k[y][x] = "ff"#char2hex(string[i])
+            k[y][x] = char2hex(string[i])
             i += 1
     return k
         
-print(inv_mc(mc([['fe','76','c5','b1'],['cb','f0','c5','7d'],['52','52','a2','38'],['63','2b','af','20']])))
+def strToMatrices(s):
+    mats = []
+    while(len(s) % 16 != 0):
+        s = s + 'Z'
+    for n in range(0, len(s), 16):
+        curr_mat = []
+        for i in range(4):
+            curr_row = []
+            for j in range(4):
+                curr_row.append(char2hex(s[n+4*i+j]))
+            curr_mat.append(curr_row)
+        mats.append(curr_mat)
+    return mats
+
+def matricesToStr(mats):
+    s = ""
+    for n in range(len(mats)):
+        for i in range(4):
+            for j in range(4):
+                s = s + hex2char(mats[n][i][j])
+    return s
+
+def encryptAES(s, k):
+    mats = strToMatrices(s)
+    key = keyToMatrix(k)
+    expandKeySchedule(key)
+    curr_round = 0
+    curr_key = getCurrKey(key, curr_round)
+    for i in range(len(mats)):
+        mats[i] = ark(mats[i], curr_key)
+    while(curr_round < 10):
+        curr_round += 1
+        curr_key = getCurrKey(key, curr_round)
+        for i in range(len(mats)):
+            mats[i] = bs(mats[i])
+            mats[i] = sr(mats[i])
+            if(curr_round < 10):
+                mats[i] = mc(mats[i])
+            mats[i] = ark(mats[i], curr_key)
+    return mats
+
+def decryptAES(mats, k):
+    key = keyToMatrix(k)
+    expandKeySchedule(key)
+    curr_round = 10
+    while(curr_round > 0):
+        curr_key = getCurrKey(key, curr_round)
+        for i in range(len(mats)):
+            mats[i] = ark(mats[i], curr_key)
+            if(curr_round != 10):
+                mats[i] = inv_mc(mats[i])
+            mats[i] = inv_sr(mats[i])
+            mats[i] = inv_bs(mats[i])
+        curr_round -= 1
+    curr_key = getCurrKey(key, curr_round)
+    for i in range(len(mats)):
+        mats[i] = ark(mats[i], curr_key)
+    return matricesToStr(mats)
+
+st = "Sgt. Pepper's Lonely Hearts Club Band"
+key = "The Beatles"
+
+print(decryptAES(encryptAES(st, key), key))
+            
