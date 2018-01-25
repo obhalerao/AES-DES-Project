@@ -112,3 +112,23 @@ mults = [[['00','02','04','06','08','0a','0c','0e','10','12','14','16','18','1a'
           ['0c','02','10','1e','34','3a','28','26','7c','72','60','6e','44','4a','58','56'],
           ['37','39','2b','25','0f','01','13','1d','47','49','5b','55','7f','71','63','6d'],
           ['d7','d9','cb','c5','ef','e1','f3','fd','a7','a9','bb','b5','9f','91','83','8d']]]
+##    EXPLANATION    ##
+
+"""
+DES (Data Encryption Standard):
+Symmetric-key encryption algorithm (no public-private distinction)
+Published in 1977, became standard for US Government data encryption
+Replaced by AES in 2001 (see AES below)
+Although there are no effective attacks aside from brute force, the small key size allowed keys to be cracked in a matter of hours
+Data is XORed with subkeys generated from the original key over multiple rounds, substituted, and permuted for a total of 16 rounds.
+For decryption, there are inverse functions for the encryption XORs, the keys are used in reverse order
+
+AES (Advanced Encryption Standard):
+AES was developed by two Belgian cryptographers for a contest to develop a replacement for the dying DES.
+Symmetric-key encryption algorithm (like DES but more secure)
+It was first published in 1998, but not accepted as the federal encryption standard until 2001.
+Larger key size than DES: 128, 192, or 256 bits (Our version has 128-bit keys)
+Data is put into a matrix, and various substitutions, permutations, transformations, and XORs are applied over 10 rounds with 10 different subkeys generated from the original.
+For decryption, inverse functions for each of the encryption functions are applied to the encrypted data in reverse order until the data is decrypted.
+More secure than DES because the larger key size makes it much harder to brute-force.
+"""
